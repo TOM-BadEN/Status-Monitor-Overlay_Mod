@@ -100,22 +100,22 @@ public:
             }
 
             if (R_SUCCEEDED(nifmCheck)) {
-                renderer->drawString("网络", false, X_OFFSET, 255, 20, (settings.catColor1));
+                renderer->drawString("网络", false, X_OFFSET, 255 + 10, 20, (settings.catColor1));
                 if (!Nifm_internet_rc) {
                     if (NifmConnectionType == NifmInternetConnectionType_WiFi) {
-                        renderer->drawString("Wi-Fi连接", false, X_OFFSET, 280, 18, (settings.catColor2));
+                        renderer->drawString("Wi-Fi连接", false, X_OFFSET, 280 + 10, 18, (settings.catColor2));
                         if (!Nifm_profile_rc) {
                             if (Nifm_showpass)
-                                renderer->drawString(Nifm_pass, false, X_OFFSET, 305, 15, (settings.textColor));
+                                renderer->drawString(Nifm_pass, false, X_OFFSET, 305 + 10, 15, (settings.textColor));
                             else
-                                renderer->drawString("按 \uE0E3 显示密码", false, X_OFFSET, 305, 15, (settings.textColor));
+                                renderer->drawString("按 \uE0E3 显示密码", false, X_OFFSET, 305 + 10, 15, (settings.textColor));
                         }
                     }
                     else if (NifmConnectionType == NifmInternetConnectionType_Ethernet)
-                        renderer->drawString("有线连接", false, X_OFFSET, 280, 18, (settings.textColor));
+                        renderer->drawString("有线连接", false, X_OFFSET, 280 + 10, 18, (settings.textColor));
                 }
                 else
-                    renderer->drawString("无连接", false, X_OFFSET, 280, 18, (settings.textColor));
+                    renderer->drawString("无连接", false, X_OFFSET, 280 + 10, 18, (settings.textColor));
             }
 
             

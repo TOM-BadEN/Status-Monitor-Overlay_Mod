@@ -92,7 +92,7 @@ public:
         
         auto* list = new tsl::elm::List();
 
-        list->addItem(new tsl::elm::CategoryHeader("其它"));
+        list->addItem(new tsl::elm::CategoryHeader("更多监控内容"));
 
         auto* Battery = new tsl::elm::ListItem("电池/充电");
         Battery->setClickListener([](uint64_t keys) {
@@ -126,7 +126,7 @@ public:
         //    list->addItem(Res);
         //}
         //tsl::elm::g_disableMenuCacheOnReturn.store(true, std::memory_order_release);
-        tsl::elm::HeaderOverlayFrame* rootFrame = new tsl::elm::HeaderOverlayFrame("状态监控", "Modes");
+        tsl::elm::HeaderOverlayFrame* rootFrame = new tsl::elm::HeaderOverlayFrame("状态监控", "更多监控");
         if (!lastSelectedItem.empty())
             list->jumpToItem(lastSelectedItem);
             
@@ -345,7 +345,7 @@ public:
             list->addItem(Res);
 
         }
-        auto* Other = new tsl::elm::ListItem("其它条目");
+        auto* Other = new tsl::elm::ListItem("更多监控器");
         Other->setValue(ult::DROPDOWN_SYMBOL);
         Other->setClickListener([](uint64_t keys) {
             if (keys & KEY_A) {
@@ -362,7 +362,7 @@ public:
             list->jumpToItem(lastSelectedItem);
 
         //list->disableCaching();
-        tsl::elm::HeaderOverlayFrame* rootFrame = new tsl::elm::HeaderOverlayFrame("状态监控", "南宫镜 汉化");
+        tsl::elm::HeaderOverlayFrame* rootFrame = new tsl::elm::HeaderOverlayFrame("状态监控", APP_VERSION);
         rootFrame->setContent(list);
 
         return rootFrame;

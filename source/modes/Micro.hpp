@@ -13,7 +13,7 @@ private:
     char soc_temperature_c[32];
     char skin_temperature_c[32];
     char FPS_var_compressed_c[64];
-    char Battery_c[32];
+    char Battery_c[48];
     char CPU_volt_c[16];
     char GPU_volt_c[16];
     char RAM_volt_c[32];
@@ -242,13 +242,13 @@ public:
                         break;
                     case 0x52414D: // "RAM"
                         if (!(seen_flags & 4)) {
-                            renderItems.push_back({2, "内存", RAM_var_compressed_c, RAM_volt_c, settings.realVolts});
+                            renderItems.push_back({2, "RAM", RAM_var_compressed_c, RAM_volt_c, settings.realVolts});
                             seen_flags |= 4;
                         }
                         break;
                     case 0x534F43: // "SOC"
                         if (!(seen_flags & 8)) {
-                            renderItems.push_back({3, "核心", soc_temperature_c, SOC_volt_c, settings.realVolts && settings.showSOCVoltage});
+                            renderItems.push_back({3, "SOC", soc_temperature_c, SOC_volt_c, settings.realVolts && settings.showSOCVoltage});
                             seen_flags |= 8;
                         }
                         break;
@@ -260,20 +260,20 @@ public:
                         break;
                     case 0x524553: // "RES"
                         if (!(seen_flags & 128)) {
-                            renderItems.push_back({7, "分辨率", RES_var_compressed_c, nullptr, false}); // We'll reuse FPS buffer temporarily
+                            renderItems.push_back({7, "RES", RES_var_compressed_c, nullptr, false}); // We'll reuse FPS buffer temporarily
                             seen_flags |= 128;
                             resolutionShow = true;
                         }
                         break;
                     case 0x465053: // "FPS"
                         if (!(seen_flags & 32)) {
-                            renderItems.push_back({5, "帧率", FPS_var_compressed_c, nullptr, false});
+                            renderItems.push_back({5, "FPS", FPS_var_compressed_c, nullptr, false});
                             seen_flags |= 32;
                         }
                         break;
                     case 0x424154: // "BAT"
                         if (!(seen_flags & 64)) {
-                            renderItems.push_back({6, "电池", Battery_c, nullptr, false});
+                            renderItems.push_back({6, "BAT", Battery_c, nullptr, false});
                             seen_flags |= 64;
                         }
                         break;
@@ -285,7 +285,7 @@ public:
                         break;
                     case 0x445443: // "DTC" 
                         if (!(seen_flags & 256) && settings.showDTC) {
-                            renderItems.push_back({8, settings.useDTCSymbol ? "\uE007" : "时间", DTC_c, nullptr, false});
+                            // renderItems.push_back({8, settings.useDTCSymbol ? "\uE007" : "时间", DTC_c, nullptr, false});
                             seen_flags |= 256;
                         }
                         break;
@@ -328,16 +328,7 @@ public:
             for (auto& item : renderItems) {
                 //if (item.type == 6) { // BAT
                 //    battery_item = &item;
-                if (item.type == 5 && (!GameRunning || (strcmp(FPS_var_compressed_c, "254.0") == 0))) {
-                    // Skip FPS if no game running
-                    continue;
-                } else if (item.type == 7 && (!GameRunning || !m_resolutionOutput[0].width)) {
-                    // Skip RES if no game running or no resolution data yet
-                    continue;
-                } else if (item.type == 8 && !settings.showDTC) {
-                    // Skip DTC if disabled in settings
-                    continue;
-                } else if (item.type == 9 && (!GameRunning || !NxFps)) {
+                if (item.type == 9 && (!GameRunning || !NxFps)) {
                     // Skip READ if no game running or no NxFps available
                     continue;
                 } else {
@@ -767,7 +758,7 @@ public:
         /* ── CPU voltage ───────────────────────────── */
         if (settings.realVolts) {
             const uint32_t mv = realCPU_mV / 1000;                 // µV → mV
-            snprintf(CPU_volt_c, sizeof(CPU_volt_c), "%u mV", mv);
+            snprintf(CPU_volt_c, sizeof(CPU_volt_c), "%u", mv);
         }
         
         // GPU frequency and voltage
@@ -806,7 +797,7 @@ public:
         /* ── GPU voltage ───────────────────────────── */
         if (settings.realVolts) {
             const uint32_t mv = realGPU_mV / 1000;
-            snprintf(GPU_volt_c, sizeof(GPU_volt_c), "%u mV", mv);
+            snprintf(GPU_volt_c, sizeof(GPU_volt_c), "%u", mv);
         }
         
         // RAM usage and frequency
@@ -866,9 +857,9 @@ public:
             
             if (settings.showVDD2) {
                 if (settings.decimalVDD2) {
-                    snprintf(temp_buffer, sizeof(temp_buffer), "%.1f mV", mv_vdd2);
+                    snprintf(temp_buffer, sizeof(temp_buffer), "%.1f", mv_vdd2);
                 } else {
-                    snprintf(temp_buffer, sizeof(temp_buffer), "%u mV", (uint32_t)mv_vdd2);
+                    snprintf(temp_buffer, sizeof(temp_buffer), "%u", (uint32_t)mv_vdd2);
                 }
                 strcat(RAM_volt_c, temp_buffer);
             }
@@ -877,7 +868,7 @@ public:
                 if (RAM_volt_c[0] != '\0') {
                     strcat(RAM_volt_c, "");
                 }
-                snprintf(temp_buffer, sizeof(temp_buffer), "%u mV", mv_vddq);
+                snprintf(temp_buffer, sizeof(temp_buffer), "%u", mv_vddq);
                 strcat(RAM_volt_c, temp_buffer);
             }
         } else {
@@ -923,6 +914,8 @@ public:
             time_t rawtime = time(NULL);
             struct tm *timeinfo = localtime(&rawtime);
             strftime(DTC_c, sizeof(DTC_c), settings.dtcFormat.c_str(), timeinfo);
+            strcat(Battery_c, "");   // 添加分隔符
+            strcat(Battery_c, DTC_c); // 追加时间
         }
 
         // Thermal info
@@ -951,7 +944,7 @@ public:
         /* ── SoC voltage ───────────────────────────── */
         if (settings.realVolts && settings.showSOCVoltage) {
             const uint32_t mv = realSOC_mV / 1000;
-            snprintf(SOC_volt_c, sizeof(SOC_volt_c), "%u mV", mv);
+            snprintf(SOC_volt_c, sizeof(SOC_volt_c), "%u", mv);
         } else {
             SOC_volt_c[0] = '\0'; // Clear the buffer when disabled
         }
@@ -1049,24 +1042,11 @@ public:
                 // Format resolution string
                 if (m_resolutionOutput[0].width) {
                     if (settings.showFullResolution) {
-                        if (!m_resolutionOutput[1].width) {
-                            snprintf(RES_var_compressed_c, sizeof(RES_var_compressed_c), "%dx%d", 
-                                m_resolutionOutput[0].width, m_resolutionOutput[0].height);
-                        }
-                        else {
-                            snprintf(RES_var_compressed_c, sizeof(RES_var_compressed_c), "%dx%d%dx%d", 
-                                m_resolutionOutput[0].width, m_resolutionOutput[0].height, 
-                                m_resolutionOutput[1].width, m_resolutionOutput[1].height);
-                        }
+                        snprintf(RES_var_compressed_c, sizeof(RES_var_compressed_c), "%dx%d", 
+                            m_resolutionOutput[0].width, m_resolutionOutput[0].height);
                     } else {
-                        if (!m_resolutionOutput[1].width) {
-                            snprintf(RES_var_compressed_c, sizeof(RES_var_compressed_c), "%dp", 
-                                m_resolutionOutput[0].height);
-                        }
-                        else {
-                            snprintf(RES_var_compressed_c, sizeof(RES_var_compressed_c), "%dp%dp", 
-                                m_resolutionOutput[0].height, m_resolutionOutput[1].height);
-                        }
+                        snprintf(RES_var_compressed_c, sizeof(RES_var_compressed_c), "%dp", 
+                            m_resolutionOutput[0].height);
                     }
                 }
                 
@@ -1075,13 +1055,14 @@ public:
                 old_res[1] = std::make_pair(m_resolutionOutput[1].width, m_resolutionOutput[1].height);
             }
         }
-        else if (!GameRunning && resolutionLookup != 0) {
-            resolutionLookup = 0;
+        else { 
+            if (resolutionLookup != 0) resolutionLookup = 0;
+            strcpy(RES_var_compressed_c, ">.0");  
         }
 
         // FPS
-        snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", useOldFPSavg ? FPSavg_old : FPSavg);
-
+        if (GameRunning) snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", useOldFPSavg ? FPSavg_old : FPSavg);
+        else strcpy(FPS_var_compressed_c, "0.0");
 
         // Read Speed
         if (GameRunning && NxFps && SharedMemoryUsed) {
